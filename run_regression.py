@@ -58,7 +58,7 @@ for ll in range(nL + 1):
 
 h0 = np.sin(15 * np.pi * Xx) * np.cos(Xx)
 
-# Simulations
+# # Simulations
 np.random.seed(1234567)
 
 n = nn[n_index - 1]

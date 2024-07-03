@@ -7,10 +7,10 @@
             "program": "${file}"
         },
         {
-            "name": "Python Debugger: Python File",
+            "name": "Python Debugger: specific File",
             "type": "debugpy",
             "request": "launch",
-            "program": "${file}"
+            "program": "${workspaceFolder}/run_regression.py"
         }
     ]
 }
