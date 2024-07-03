@@ -46,7 +46,7 @@ def bspline(x, l, r, kts=None):
             print(f"kts[{r-2}:{r+m-1}] = {kts[r-2:r+m-1]}")
             print(f"kts[{r-1}:{r+m}] = {kts[r-1:r+m]}")
 
-        ix1 = int((x[i] >= kts[r-2:r+m-1]) & (x[i] <= kts[r-1:r+m])) #[0]
+        ix1 = int(np.all((x[i] >= kts[r-2:r+m-1]) & (x[i] <= kts[r-1:r+m])))#[0]
     
         if ix1>0:
             ix = ix1
@@ -61,18 +61,29 @@ def bspline(x, l, r, kts=None):
         if ix is not None:
             BB[i, ix + r - 3, 0] = 1
 
-
+    outer_iteration_count = 0
+    inner_iteration_count = 0
+    a1_count = 0
+    a2_count = 0
     # Recursion to compute B-spline basis functions
     for j in range(2, 5):  # j = 2:r-1 in MATLAB
+        outer_iteration_count +=1
+        print(f'Outer Loop Iteration {outer_iteration_count}')
         for i in range(1,9-j):  # i = 1:m+2*r-2-j in MATLAB, adjusting for 0-based indexing
+            inner_iteration_count += 1
+            print(f'  Inner Loop Iteration {inner_iteration_count}')
             if i + j <= m + 2*r-1:  # if i+j+1 <= m+2*r in MATLAB, adjusting for 0-based indexing
                 if kts[i + j-2] - kts[i-1] != 0:  # kts(i+j-1)-kts(i) in MATLAB
                     a1 = (x - kts[i-1]) / (kts[i + j-2] - kts[i-1])
+                    a1_count += 1
+                    print(f'    a1 created, count: {a1_count}')
                 else:
                     a1 = np.zeros((N, 1))
             
                 if kts[i + j - 1] - kts[i] != 0:  # kts(i+j)-kts(i+1) in MATLAB
                     a2 = (x - kts[i]) / (kts[i + j] - kts[i])
+                    a2_count += 1
+                    print(f'    a2 created, count: {a2_count}')
                 else:
                     a2 = np.zeros((N, 1))
                 a1 = a1.flatten()
@@ -82,11 +93,15 @@ def bspline(x, l, r, kts=None):
             elif i + j - 1 <= m + 2*r-1:  # if i+j <= m+2*r in MATLAB, adjusting for 0-based indexing
                 if kts[i + j - 1] - kts[i-1] != 0:  # kts(i+j)-kts(i) in MATLAB
                     a1 = (x - kts[i-1]) / (kts[i + j -1] - kts[i-1])
+                    a1_count += 1
+                    print(f'    a1 created, count: {a1_count}')
                 else:
                     a1 = np.zeros((N, 1))
             
-                XX = BB[:, i-1, j-1] = a1 * BB[:, i-1, j - 2]
+                BB[:, i-1, j-1] = a1 * BB[:, i-1, j - 2]
     
+    column_range = slice(0, (2**l + r - 2))
+    XX = BB[:, column_range, r-2]
 
     # Compute derivatives if requested
     if nargout() > 1:
@@ -106,8 +121,8 @@ def bspline(x, l, r, kts=None):
             else:
                 DX[:, i] = (r - 2) * a1 * BB[:, i, r - 2]
 
-        return BB, DX
+        return XX, DX
 
-    return BB
+    return XX
 
 
